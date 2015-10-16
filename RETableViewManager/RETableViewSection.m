@@ -141,6 +141,7 @@ CGFloat const RETableViewSectionFooterHeightAutomatic = DBL_MAX;
             width = MAX(width, size.width);
         }
     }
+    
     return width + self.cellTitlePadding;
 }
 

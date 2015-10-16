@@ -80,6 +80,15 @@
     self.textField.keyboardType = UIKeyboardTypeNumberPad;
     
     self.enabled = self.item.enabled;
+    
+    if(_item.enabled){
+        self.textLabel.textColor    = self.item.titleTextColor ? self.item.titleTextColor : [UIColor blackColor];
+        self.textField.textColor    = self.item.detailTextColor ? self.item.detailTextColor : [UIColor blackColor];
+    }else{
+        self.textLabel.textColor    = _item.titleDisableTextColor ? _item.titleDisableTextColor : [UIColor lightGrayColor];
+        self.textField.textColor    = _item.detailDisableTextColor ? _item.detailDisableTextColor : [UIColor blackColor];
+    }
+    
 }
 
 - (void)layoutSubviews
@@ -134,5 +143,31 @@
     if (self.item.onEndEditing)
         self.item.onEndEditing(self.item);
 }
+
+//add by youyoujushi 2015/09/28
+- (void) textFieldDidBeginEditing:(UITextField *)textField{
+    //[self scrollCellIfNeed];
+}
+
+-(void)scrollCellIfNeed{
+    UITableView *table      = self.tableViewManager.tableView;
+    
+    CGRect visibleRect      = table.frame;
+    visibleRect.size.height -= self.tableViewManager.keyboardSize.height;
+    visibleRect.origin.y    = table.contentOffset.y;
+    
+    
+    if(self.frame.origin.y >= visibleRect.origin.y
+       && self.frame.origin.y + self.frame.size.height <=
+       visibleRect.origin.y + visibleRect.size.height){
+        return;//no need scroll
+    }
+    
+    [UIView animateWithDuration:0.3 animations:^{
+        [table setContentOffset:CGPointMake(0, self.frame.origin.y - 40)];
+    }];
+    
+}
+//end add
 
 @end

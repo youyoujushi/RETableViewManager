@@ -29,8 +29,10 @@
 @interface RETableViewCell ()
 
 @property (assign, readwrite, nonatomic) BOOL loaded;
+@property (assign, readwrite, nonatomic) BOOL enabled;
 @property (strong, readwrite, nonatomic) UIImageView *backgroundImageView;
 @property (strong, readwrite, nonatomic) UIImageView *selectedBackgroundImageView;
+
 
 @end
 
@@ -46,7 +48,7 @@
     if ([item isKindOfClass:[RETableViewItem class]] && item.cellHeight > 0)
         return item.cellHeight;
     
-    if ([item isKindOfClass:[RETableViewItem class]] && item.cellHeight == 0)
+    if ([item isKindOfClass:[RETableViewItem class]] && item.cellHeight == 0 && item.section.style.cellHeight > 0)
         return item.section.style.cellHeight;
     
     return tableViewManager.style.cellHeight;
@@ -73,8 +75,37 @@
     [self.selectedBackgroundView addSubview:self.selectedBackgroundImageView];
 }
 
-#pragma mark -
+/*#pragma mark - KVO
+
+- (void)setItem:(RETextItem *)item
+{
+    if (_item != nil) {
+        [_item removeObserver:self forKeyPath:@"enabled"];
+    }
+    
+    _item = item;
+    
+    [_item addObserver:self forKeyPath:@"enabled" options:NSKeyValueObservingOptionNew context:NULL];
+}
+
+- (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context
+{
+    if ([object isKindOfClass:[RETableViewItem class]] && [keyPath isEqualToString:@"enabled"]) {
+        BOOL newValue = [[change objectForKey: NSKeyValueChangeNewKey] boolValue];
+        self.enabled = newValue;
+    }
+}
+
+- (void)setEnabled:(BOOL)enabled{
+    if(_enabled == enabled)
+        return;
+    _enabled    = enabled;
+    
+
+}*/
+
 #pragma mark Cell life cycle
+
 
 - (void)cellDidLoad
 {
@@ -114,6 +145,12 @@
     }
     if (self.textLabel.text.length == 0)
         self.textLabel.text = @" ";
+    
+    if(_item.enabled){
+        self.textLabel.textColor    = _item.titleTextColor ? _item.titleTextColor : [UIColor blackColor];
+    }else{
+        self.textLabel.textColor    = _item.titleDisableTextColor ? _item.titleDisableTextColor : [UIColor blackColor];
+    }
 }
 
 - (void)cellDidDisappear
@@ -180,7 +217,40 @@
     
     CGRect frame = CGRectMake(0, self.textLabel.frame.origin.y, 0, self.textLabel.frame.size.height);
     if (self.item.title.length > 0) {
-        frame.origin.x = [self.section maximumTitleWidthWithFont:font] + cellOffset + fieldOffset;
+        CGFloat space = 0;
+        RETableViewCellStyle *managerStyle = self.tableViewManager.style;
+        RETableViewCellStyle *sectionStyle = self.section.style;
+        if(managerStyle.spaceTitleAndDetail > 0
+           || managerStyle.spaceTitleAndDetail == -2
+           || managerStyle.spaceTitleAndDetail == -1 )
+            space = managerStyle.spaceTitleAndDetail;
+        
+        if(sectionStyle.spaceTitleAndDetail > 0
+           || sectionStyle.spaceTitleAndDetail == -2
+           || sectionStyle.spaceTitleAndDetail == -1 )
+            space = sectionStyle.spaceTitleAndDetail;
+
+        if(self.item.spaceTitleAndDetail > 0
+           || self.item.spaceTitleAndDetail == -2
+           || self.item.spaceTitleAndDetail == -1 )
+            space = self.item.spaceTitleAndDetail;
+        
+        if(space == 0 || space == -1){
+            
+            CGFloat width = [self.item.title re_sizeWithFont:font].width;
+            frame.origin.x = width + cellOffset + fieldOffset;
+            
+        }else if(space == -2){
+            
+            frame.origin.x = [self.section maximumTitleWidthWithFont:font] + cellOffset + fieldOffset;
+            
+        }else if(space > 0){
+            
+            CGFloat width = [self.item.title re_sizeWithFont:font].width;
+            frame.origin.x = width + cellOffset + space;
+
+        }
+
     } else {
         frame.origin.x = cellOffset;
     }
@@ -193,6 +263,8 @@
     
     view.frame = frame;
 }
+
+
 
 - (RETableViewCellType)type
 {

@@ -56,7 +56,7 @@
     self.valueLabel = [[UILabel alloc] initWithFrame:CGRectNull];
     self.valueLabel.font = [UIFont systemFontOfSize:17];
     self.valueLabel.backgroundColor = [UIColor clearColor];
-    self.valueLabel.textColor = self.detailTextLabel.textColor;
+    //self.valueLabel.textColor = self.detailTextLabel.textColor;
     self.valueLabel.highlightedTextColor = [UIColor whiteColor];
     self.valueLabel.textAlignment = NSTextAlignmentRight;
     [self.contentView addSubview:self.valueLabel];
@@ -76,6 +76,14 @@
     }
     
     self.enabled = self.item.enabled;
+    
+    if(_item.enabled){
+        self.textLabel.textColor    = self.item.titleTextColor ? self.item.titleTextColor : [UIColor blackColor];
+        self.valueLabel.textColor   = self.item.detailTextColor ? self.item.detailTextColor : [UIColor blackColor];
+    }else{
+        self.textLabel.textColor    = _item.titleDisableTextColor ? _item.titleDisableTextColor : [UIColor lightGrayColor];
+        self.valueLabel.textColor   = _item.detailDisableTextColor ? _item.detailDisableTextColor : [UIColor blackColor];
+    }
 }
 
 - (void)layoutSubviews

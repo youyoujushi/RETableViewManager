@@ -32,6 +32,9 @@
 
 @property (assign, readwrite, nonatomic) BOOL enabled;
 
+//add by youyoujushi 2015-09-28
+@property (assign,nonatomic) CGPoint tableContentoffset;
+
 @end
 
 @implementation RETableViewLongTextCell
@@ -41,6 +44,23 @@
 + (BOOL)canFocusWithItem:(RELongTextItem *)item
 {
     return item.editable;
+}
+
++ (CGFloat)heightWithItem:(RETableViewItem *)item tableViewManager:(RETableViewManager *)tableViewManager
+{
+    CGFloat horizontalMargin = 10;
+    if (item.section.style.contentViewMargin <= 0)
+        horizontalMargin += 5.0;
+
+    
+    CGFloat width = CGRectGetWidth(tableViewManager.tableView.bounds) - 2.0 * horizontalMargin - 10 - [item.title re_sizeWithFont:[UIFont systemFontOfSize:17] constrainedToSize:CGSizeMake(INFINITY, INFINITY)].width;
+
+    RELongTextItem *longTextItem = (RELongTextItem*)item;
+
+    item.cellHeight = [longTextItem.value re_sizeWithFont:[UIFont systemFontOfSize:17] constrainedToSize:CGSizeMake(width, INFINITY)].height + 2.0 * 10;
+    if(item.cellHeight < item.section.style.cellHeight)
+        item.cellHeight = item.section.style.cellHeight;
+    return  item.cellHeight;
 }
 
 #pragma mark -
@@ -55,6 +75,7 @@
 - (void)cellDidLoad
 {
     [super cellDidLoad];
+    //[self becomeFirstResponder];
     self.textLabel.backgroundColor = [UIColor clearColor];
     
     self.textView = [[REPlaceholderTextView alloc] init];
@@ -64,7 +85,7 @@
     self.textView.backgroundColor = [UIColor clearColor];
     self.textView.delegate = self;
     [self.contentView addSubview:self.textView];
-
+/*
     UILabel *label = self.textLabel;
     
     CGFloat padding = (self.section.style.contentViewMargin <= 0) ? 7 : 2;
@@ -72,7 +93,8 @@
     UITextView *textView = self.textView;
     [self.contentView removeConstraints:self.contentView.constraints];
     [self.contentView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|[textView]-2-|" options:0 metrics:metrics views:NSDictionaryOfVariableBindings(textView, label)]];
-    [self.contentView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|-padding-[textView]-padding-|" options:0 metrics:metrics views:NSDictionaryOfVariableBindings(textView, label)]];
+    [self.contentView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|-padding-[textView]-padding-|" options:0 metrics:metrics views:NSDictionaryOfVariableBindings(textView, label)]];*/
+
 }
 
 - (void)setSelected:(BOOL)selected animated:(BOOL)animated
@@ -104,10 +126,18 @@
     self.textView.enablesReturnKeyAutomatically = self.item.enablesReturnKeyAutomatically;
     self.textView.secureTextEntry = self.item.secureTextEntry;
     [self.textView setNeedsDisplay];
-    
+    self.textView.backgroundColor   = [UIColor clearColor];
     self.actionBar.barStyle = self.item.keyboardAppearance == UIKeyboardAppearanceAlert ? UIBarStyleBlack : UIBarStyleDefault;
     
     self.enabled = self.item.enabled;
+    
+    if(_item.enabled){
+        self.textLabel.textColor    = self.item.titleTextColor ? self.item.titleTextColor : [UIColor blackColor];
+        self.textView.textColor     = self.item.detailTextColor ? self.item.detailTextColor : [UIColor blackColor];
+    }else{
+        self.textLabel.textColor    = _item.titleDisableTextColor ? _item.titleDisableTextColor : [UIColor lightGrayColor];
+        self.textView.textColor     = _item.detailDisableTextColor ? _item.detailDisableTextColor : [UIColor blackColor];
+    }
 }
 
 - (UIResponder *)responder
@@ -121,9 +151,15 @@
 - (void)layoutSubviews
 {
     [super layoutSubviews];
+    
+    [self layoutDetailView:self.textView minimumWidth:0];
+    CGRect rect = self.textView.frame;
+    rect.origin.y       += 2;
+    rect.size.height    -= 2;
+    self.textView.frame = rect;
     if ([self.tableViewManager.delegate respondsToSelector:@selector(tableView:willLayoutCellSubviews:forRowAtIndexPath:)])
         [self.tableViewManager.delegate tableView:self.tableViewManager.tableView willLayoutCellSubviews:self forRowAtIndexPath:[self.tableViewManager.tableView indexPathForCell:self]];
-}
+    }
 
 
 #pragma mark -
@@ -143,10 +179,11 @@
 - (void)setEnabled:(BOOL)enabled {
     _enabled = enabled;
     
-    self.userInteractionEnabled = _enabled;
+    //self.userInteractionEnabled = _enabled;
     
     self.textLabel.enabled = _enabled;
-    self.textView.userInteractionEnabled = _enabled;
+    //self.textView.userInteractionEnabled = _enabled;
+    self.textView.editable = _enabled;
 }
 
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context
@@ -164,16 +201,43 @@
 - (BOOL)textViewShouldBeginEditing:(UITextView *)textView
 {
     [self updateActionBarNavigationControl];
-    [self.parentTableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:self.rowIndex inSection:self.sectionIndex] atScrollPosition:UITableViewScrollPositionTop animated:YES];
+    //[self.parentTableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:self.rowIndex inSection:self.sectionIndex] atScrollPosition:UITableViewScrollPositionTop animated:YES];
     if (self.item.onBeginEditing)
         self.item.onBeginEditing(self.item);
+
     return YES;
 }
+
+//add by youyoujushi 2015/09/28
+- (void) textViewDidBeginEditing:(UITextView *)textView{
+    [self scrollCellIfNeed];
+}
+
+-(void)scrollCellIfNeed{
+    UITableView *table      = self.tableViewManager.tableView;
+    
+    CGRect visibleRect      = table.bounds;
+    visibleRect.size.height -= self.tableViewManager.keyboardSize.height;
+    visibleRect.origin.y    = table.contentOffset.y;
+
+    
+    if(self.frame.origin.y >= visibleRect.origin.y
+       && self.frame.origin.y + self.frame.size.height <=
+          visibleRect.origin.y + visibleRect.size.height){
+        return;//no need scroll
+    }
+    
+    [UIView animateWithDuration:0.3 animations:^{
+        [table setContentOffset:CGPointMake(0, self.frame.origin.y-40)];
+    }];
+    
+}
+//end add
 
 - (BOOL)textViewShouldEndEditing:(UITextView *)textView
 {
     if (self.item.onEndEditing)
-        self.item.onEndEditing(self.item);
+        self.item.onEndEditing(self.item);    
     return YES;
 }
 
@@ -190,11 +254,21 @@
     return YES;
 }
 
+- (void)textViewDidEndEditing:(UITextView *)textView{
+    
+    [self.tableViewManager.tableView reloadData];
+}
+
 - (void)textViewDidChange:(UITextView *)textView
 {
+
     self.item.value = textView.text;
     if (self.item.onChange)
         self.item.onChange(self.item);
+
 }
+
+
+
 
 @end

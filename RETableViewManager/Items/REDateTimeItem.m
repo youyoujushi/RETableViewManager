@@ -48,6 +48,18 @@
     return self;
 }
 
+- (NSString*)dateString{
+    if(_dateString.length > 0)
+        return _dateString;
+    
+    if(_value != nil && _format.length > 0){
+        NSDateFormatter *formatter = [[NSDateFormatter alloc]init];
+        [formatter setDateFormat:@"yyyy-MM-dd"];
+        return  [formatter stringFromDate:_value];
+    }
+    return nil;
+}
+
 #pragma mark -
 #pragma mark Error validation
 

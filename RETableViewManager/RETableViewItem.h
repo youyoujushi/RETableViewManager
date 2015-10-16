@@ -31,12 +31,12 @@
 
 @interface RETableViewItem : NSObject
 
-@property (copy, readwrite, nonatomic) NSString *title;
+@property (copy, readwrite, nonatomic)   NSString *title;
 @property (strong, readwrite, nonatomic) UIImage *image;
 @property (strong, readwrite, nonatomic) UIImage *highlightedImage;
 @property (assign, readwrite, nonatomic) NSTextAlignment textAlignment;
-@property (weak, readwrite, nonatomic) RETableViewSection *section;
-@property (copy, readwrite, nonatomic) NSString *detailLabelText;
+@property (weak, readwrite, nonatomic)   RETableViewSection *section;
+@property (copy, readwrite, nonatomic)   NSString *detailLabelText;
 @property (assign, readwrite, nonatomic) UITableViewCellStyle style;
 @property (assign, readwrite, nonatomic) UITableViewCellSelectionStyle selectionStyle;
 @property (assign, readwrite, nonatomic) UITableViewCellAccessoryType accessoryType;
@@ -59,6 +59,21 @@
 // Action bar
 @property (copy, readwrite, nonatomic) void (^actionBarNavButtonTapHandler)(id item); //handler for nav button on ActionBar
 @property (copy, readwrite, nonatomic) void (^actionBarDoneButtonTapHandler)(id item); //handler for done button on ActionBar
+
+//add by youyoujushi 2015-10-01
+
+/**
+ *  the space between title and detail view,type of SPACE_TITLE_DETAIL_ALIGN
+ *  -1 or 0 : space between detail view and title is default 10
+ *  -2 :space between detail view and title is the max space in the section
+ *  >0 :space between detail view and title is the spaceTitleAndDetail value
+ */
+@property (assign, readwrite, nonatomic) NSInteger spaceTitleAndDetail;
+@property (strong, readwrite, nonatomic) UIColor    *titleTextColor;    //title text color of the cell
+@property (strong, readwrite, nonatomic) UIColor    *detailTextColor;   //detail text color of the cell
+@property (strong, readwrite, nonatomic) UIColor    *titleDisableTextColor;//title text color when disable
+@property (strong, readwrite, nonatomic) UIColor    *detailDisableTextColor;//detail text color when disable
+//end add
 
 
 // Error validation

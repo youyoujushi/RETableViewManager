@@ -78,9 +78,14 @@
     self.selectionStyle = UITableViewCellSelectionStyleNone;
     
     self.textLabel.text = self.item.title.length == 0 ? @" " : self.item.title;
+    //if(_item.titleTextColor)
+    //    self.textLabel.textColor    = _item.titleTextColor;
+    
     self.textField.text = self.item.value;
     self.textField.placeholder = self.item.placeholder;
     self.textField.font = [UIFont systemFontOfSize:17];
+    //if(_item.detailTextColor)
+    //    self.textField.textColor    = _item.detailTextColor;
     self.textField.autocapitalizationType = self.item.autocapitalizationType;
     self.textField.autocorrectionType = self.item.autocorrectionType;
     self.textField.spellCheckingType = self.item.spellCheckingType;
@@ -91,10 +96,23 @@
     self.textField.secureTextEntry = self.item.secureTextEntry;
     self.textField.clearButtonMode = self.item.clearButtonMode;
     self.textField.clearsOnBeginEditing = self.item.clearsOnBeginEditing;
-    
     self.actionBar.barStyle = self.item.keyboardAppearance == UIKeyboardAppearanceAlert ? UIBarStyleBlack : UIBarStyleDefault;
     
     self.enabled = self.item.enabled;
+    
+    if(_item.enabled){
+        self.textLabel.textColor        = _item.titleTextColor ? _item.titleTextColor : [UIColor blackColor];
+        self.textField.textColor        = _item.detailTextColor ? _item.detailTextColor : [UIColor blackColor];
+    }else{
+        if(_item.titleDisableTextColor)
+            self.textLabel.textColor    = _item.titleDisableTextColor;
+        else
+            self.textLabel.textColor    = [UIColor lightGrayColor];
+        
+        self.textField.textColor    = _item.detailDisableTextColor ? _item.detailDisableTextColor : [UIColor blackColor];
+    }
+    
+    
 }
 
 - (UIResponder *)responder
@@ -110,6 +128,8 @@
     
     if ([self.tableViewManager.delegate respondsToSelector:@selector(tableView:willLayoutCellSubviews:forRowAtIndexPath:)])
         [self.tableViewManager.delegate tableView:self.tableViewManager.tableView willLayoutCellSubviews:self forRowAtIndexPath:[self.tableViewManager.tableView indexPathForCell:self]];
+    
+    
 }
 
 #pragma mark -
@@ -133,6 +153,22 @@
     
     self.textLabel.enabled = _enabled;
     self.textField.enabled = _enabled;
+    
+    //change the text color when enable or disable the cell
+    /*if(_enabled){
+        if(_item.titleTextColor)
+            self.textLabel.textColor        = _item.titleTextColor;
+        if(_item.detailTextColor)
+            self.textField.textColor        = _item.detailTextColor;
+    }else{
+        if(!_item.titleTextColor)
+            _item.titleTextColor    = self.textLabel.textColor;
+        if(!_item.detailTextColor)
+            _item.detailTextColor   = self.textField.textColor;
+        self.textLabel.textColor    = [UIColor lightGrayColor];
+        self.textField.textColor    = [UIColor lightGrayColor];
+    }*/
+        
 }
 
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context
@@ -168,6 +204,32 @@
         self.item.onBeginEditing(self.item);
     return YES;
 }
+
+//add by youyoujushi 2015/09/28
+- (void) textFieldDidBeginEditing:(UITextField *)textField{
+    //[self scrollCellIfNeed];
+}
+
+-(void)scrollCellIfNeed{
+    UITableView *table      = self.tableViewManager.tableView;
+    
+    CGRect visibleRect      = table.frame;
+    visibleRect.size.height -= self.tableViewManager.keyboardSize.height;
+    visibleRect.origin.y    = table.contentOffset.y;
+    
+    
+    if(self.frame.origin.y >= visibleRect.origin.y
+       && self.frame.origin.y + self.frame.size.height <=
+       visibleRect.origin.y + visibleRect.size.height){
+        return;//no need scroll
+    }
+    
+    [UIView animateWithDuration:0.3 animations:^{
+        [table setContentOffset:CGPointMake(0, self.frame.origin.y - 40)];
+    }];
+    
+}
+//end add
 
 - (BOOL)textFieldShouldEndEditing:(UITextField *)textField
 {

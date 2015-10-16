@@ -26,6 +26,11 @@
 #import <Foundation/Foundation.h>
 #import "RETableViewCell.h"
 
+enum EN_SPACE_TITLE_DETAIL{
+     SPACE_TITLE_DETAIL_NEARBY = -1, //the space is default 10 pixels
+     SPACE_TITLE_DETAIL_ALIGN = -2   //the space is align in the section
+};
+
 @interface RETableViewCellStyle : NSObject <NSCopying>
 
 @property (assign, readwrite, nonatomic) CGFloat cellHeight;
@@ -34,6 +39,18 @@
 @property (assign, readwrite, nonatomic) CGFloat contentViewMargin;
 @property (strong, readwrite, nonatomic) NSMutableDictionary *backgroundImages;
 @property (strong, readwrite, nonatomic) NSMutableDictionary *selectedBackgroundImages;
+
+//add by youyoujushi 2015-10-01
+
+/**
+ *  the space between title and detail view,type of EN_SPACE_TITLE_DETAIL
+ *  -1 or 0 : space between detail view and title is default 10
+ *  -2 :space between detail view and title is the max space in the section
+ *  >0 :space between detail view and title is the spaceTitleAndDetail value
+ */
+@property (assign, readwrite, nonatomic) NSInteger spaceTitleAndDetail;
+
+//end add
 
 - (BOOL)hasCustomBackgroundImage;
 - (UIImage *)backgroundImageForCellType:(RETableViewCellType)cellType;

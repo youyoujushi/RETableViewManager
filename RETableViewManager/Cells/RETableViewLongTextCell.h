@@ -30,6 +30,6 @@
 @interface RETableViewLongTextCell : RETableViewCell <UITextViewDelegate>
 
 @property (strong, readwrite, nonatomic) RELongTextItem *item;
-@property (strong, readonly, nonatomic) REPlaceholderTextView *textView;
+@property (strong, readonly, nonatomic)  REPlaceholderTextView *textView;
 
 @end

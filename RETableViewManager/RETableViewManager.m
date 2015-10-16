@@ -34,6 +34,9 @@
 @property (strong, readwrite, nonatomic) NSMutableArray *mutableSections;
 @property (assign, readonly, nonatomic) CGFloat defaultTableViewSectionHeight;
 
+//add by youyoujushi 15/09/28
+@property (assign, readwrite, nonatomic) CGPoint tableContentOffset;
+
 @end
 
 @implementation RETableViewManager
@@ -49,6 +52,7 @@
     self.delegate = nil;
     self.tableView.delegate = nil;
     self.tableView.dataSource = nil;
+    [[NSNotificationCenter defaultCenter]removeObserver:self];
 }
 
 - (id)init
@@ -86,8 +90,39 @@
     
     [self registerDefaultClasses];
     
+    [self registerKeyboardNotifications];
+    
     return self;
 }
+
+//add by youyoujsuhi
+
+- (void)registerKeyboardNotifications{
+    [[NSNotificationCenter defaultCenter] addObserver:self
+     
+                                             selector:@selector(keyboardWillShow:)
+     
+                                                 name:UIKeyboardWillShowNotification object:nil];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self
+     
+                                             selector:@selector(keyboardWillHide:)
+     
+                                                 name:UIKeyboardWillHideNotification object:nil];
+}
+
+- (void)keyboardWillShow:(NSNotification*)notification{
+    _tableContentOffset =   _tableView.contentOffset;
+    
+    CGRect keyboardBounds;
+    [[notification.userInfo valueForKey:UIKeyboardFrameEndUserInfoKey] getValue: &keyboardBounds];
+    _keyboardSize     = keyboardBounds.size;
+}
+
+- (void)keyboardWillHide:(NSNotification*)notification{
+
+}
+//end add
 
 - (void)registerDefaultClasses
 {
@@ -629,7 +664,8 @@
     id item = [section.items objectAtIndex:indexPath.row];
     if ([item respondsToSelector:@selector(setSelectionHandler:)]) {
         RETableViewItem *actionItem = (RETableViewItem *)item;
-        if (actionItem.selectionHandler)
+        //modify by youyoujushi
+        if (actionItem.selectionHandler && actionItem.enabled)
             actionItem.selectionHandler(item);
     }
     

@@ -118,6 +118,14 @@
     }
 
     self.enabled = self.item.enabled;
+    
+    if(_item.enabled){
+        self.textLabel.textColor        = _item.titleTextColor ? _item.titleTextColor : [UIColor blackColor];
+        self.dateLabel.textColor        = _item.detailTextColor ? _item.detailTextColor : [UIColor blackColor];
+    }else{
+        self.textLabel.textColor    = _item.titleDisableTextColor ? _item.titleDisableTextColor : [UIColor lightGrayColor];
+        self.dateLabel.textColor    = _item.detailDisableTextColor ? _item.detailDisableTextColor : [UIColor blackColor];
+    }
 }
 
 - (void)layoutSubviews
@@ -243,6 +251,7 @@
 {
     self.item.value = self.datePicker.date;
     self.dateLabel.text = [self.dateFormatter stringFromDate:self.item.value];
+    self.item.dateString = self.dateLabel.text;
     self.placeholderLabel.hidden = self.dateLabel.text.length > 0;
     if (self.item.onChange)
         self.item.onChange(self.item);

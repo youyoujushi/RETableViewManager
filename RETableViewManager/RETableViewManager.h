@@ -77,6 +77,8 @@
  */
 @property (weak, readwrite, nonatomic) UITableView *tableView;
 
+@property (assign, readwrite, nonatomic) CGSize    keyboardSize;
+
 ///-----------------------------
 /// @name Creating and Initializing a RETableViewManager
 ///-----------------------------
